@@ -73,8 +73,10 @@ export default {
   },
 
   beforeUnmount() {
-    if (this.map) {
-      this.map.remove()
+    const map = this.map as L.Map | null
+
+    if (map) {
+      map.remove()
       this.map = null
     }
   },
@@ -83,43 +85,58 @@ export default {
     initializeMap() {
       const mapElement = this.$refs.mapRoot as HTMLElement
 
-      this.map = L.map(mapElement, {
-        zoomControl: true,
-      }).setView(
-        this.selectedPlace
-          ? [this.selectedPlace.lat, this.selectedPlace.lon]
-          : [20, 0],
-        this.selectedPlace ? 11 : 2,
-      )
+      const initialCenter: L.LatLngExpression = this.selectedPlace
+        ? [this.selectedPlace.lat, this.selectedPlace.lon]
+        : [20, 0]
 
-      this.tileLayer = L.tileLayer(
+      const initialZoom = this.selectedPlace ? 11 : 2
+
+      const map = L.map(mapElement, {
+        zoomControl: true,
+      }).setView(initialCenter, initialZoom)
+
+      const tileLayer = L.tileLayer(
         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         {
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           maxZoom: 19,
         },
-      ).addTo(this.map)
+      )
 
-      this.markersLayer = L.layerGroup().addTo(this.map)
+      tileLayer.addTo(map)
+
+      const markersLayer = L.layerGroup()
+      markersLayer.addTo(map)
+
+      this.map = map
+      this.tileLayer = tileLayer
+      this.markersLayer = markersLayer
 
       this.renderMarkers()
 
       this.$nextTick(() => {
         window.setTimeout(() => {
-          this.map?.invalidateSize()
+          const currentMap = this.map as L.Map | null
+          if (!currentMap) return
+
+          currentMap.invalidateSize()
           this.fitToData()
         }, 0)
       })
     },
 
     renderMarkers() {
-      if (!this.map || !this.markersLayer) return
+      const map = this.map as L.Map | null
+      const markersLayer = this.markersLayer as L.LayerGroup | null
 
-      this.markersLayer.clearLayers()
+      if (!map || !markersLayer) return
+
+      markersLayer.clearLayers()
+      this.selectedPlaceLayer = null
 
       if (this.selectedPlace) {
-        this.selectedPlaceLayer = L.circleMarker(
+        const selectedMarker = L.circleMarker(
           [this.selectedPlace.lat, this.selectedPlace.lon],
           {
             radius: 10,
@@ -129,8 +146,10 @@ export default {
             fillOpacity: 0.85,
           },
         )
-          .addTo(this.markersLayer)
-          .bindPopup(`Search center: ${this.selectedPlace.displayName}`)
+
+        selectedMarker.addTo(markersLayer)
+        selectedMarker.bindPopup(`Search center: ${this.selectedPlace.displayName}`)
+        this.selectedPlaceLayer = selectedMarker
       }
 
       this.events.forEach((event) => {
@@ -142,7 +161,9 @@ export default {
           weight: 2,
           fillColor: '#ef4444',
           fillOpacity: 0.8,
-        }).addTo(this.markersLayer as L.LayerGroup)
+        })
+
+        marker.addTo(markersLayer)
 
         const detailsPath = `/event/${encodeURIComponent(event.providerEventId)}`
 
@@ -166,7 +187,8 @@ export default {
     },
 
     fitToData() {
-      if (!this.map) return
+      const map = this.map as L.Map | null
+      if (!map) return
 
       const bounds = L.latLngBounds([])
 
@@ -185,15 +207,12 @@ export default {
       const northEast = bounds.getNorthEast()
       const southWest = bounds.getSouthWest()
 
-      if (
-        northEast.lat === southWest.lat &&
-        northEast.lng === southWest.lng
-      ) {
-        this.map.setView([northEast.lat, northEast.lng], 13)
+      if (northEast.lat === southWest.lat && northEast.lng === southWest.lng) {
+        map.setView([northEast.lat, northEast.lng], 13)
         return
       }
 
-      this.map.fitBounds(bounds, {
+      map.fitBounds(bounds, {
         padding: [30, 30],
       })
     },
@@ -213,11 +232,11 @@ export default {
 
     escapeHtml(value: string): string {
       return value
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
     },
   },
 }

@@ -82,8 +82,10 @@ export default {
   },
 
   beforeUnmount() {
-    if (this.map) {
-      this.map.remove()
+    const map = this.map as L.Map | null
+
+    if (map) {
+      map.remove()
       this.map = null
     }
   },
@@ -92,23 +94,29 @@ export default {
     initializeMap() {
       const mapElement = this.$refs.mapRoot as HTMLElement
 
-      this.map = L.map(mapElement, {
-        zoomControl: true,
-      }).setView(
-        this.selectedPlace
-          ? [this.selectedPlace.lat, this.selectedPlace.lon]
-          : [20, 0],
-        this.selectedPlace ? 12 : 2,
-      )
+      const initialCenter: L.LatLngExpression = this.selectedPlace
+        ? [this.selectedPlace.lat, this.selectedPlace.lon]
+        : [20, 0]
 
-      this.tileLayer = L.tileLayer(
+      const initialZoom = this.selectedPlace ? 12 : 2
+
+      const map = L.map(mapElement, {
+        zoomControl: true,
+      }).setView(initialCenter, initialZoom)
+
+      const tileLayer = L.tileLayer(
         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         {
           attribution:
             '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           maxZoom: 19,
         },
-      ).addTo(this.map)
+      )
+
+      tileLayer.addTo(map)
+
+      this.map = map
+      this.tileLayer = tileLayer
 
       this.map.on('click', this.handleMapClick)
 
@@ -116,7 +124,10 @@ export default {
 
       this.$nextTick(() => {
         window.setTimeout(() => {
-          this.map?.invalidateSize()
+          const currentMap = this.map as L.Map | null
+          if (!currentMap) return
+
+          currentMap.invalidateSize()
         }, 0)
       })
     },
@@ -141,7 +152,8 @@ export default {
     },
 
     drawSelectedPlace(flyTo: boolean) {
-      if (!this.map) return
+      const map = this.map as L.Map | null
+      if (!map) return
 
       if (this.selectedLayer) {
         this.selectedLayer.remove()
@@ -150,7 +162,7 @@ export default {
 
       if (!this.selectedPlace) return
 
-      this.selectedLayer = L.circleMarker(
+      const selectedMarker = L.circleMarker(
         [this.selectedPlace.lat, this.selectedPlace.lon],
         {
           radius: 9,
@@ -160,18 +172,22 @@ export default {
           fillOpacity: 0.8,
         },
       )
-        .addTo(this.map)
-        .bindPopup(this.selectedPlace.displayName)
+
+      selectedMarker.addTo(map)
+      selectedMarker.bindPopup(this.selectedPlace.displayName)
+
+      this.selectedLayer = selectedMarker
 
       if (flyTo) {
-        this.map.flyTo([this.selectedPlace.lat, this.selectedPlace.lon], 12)
+        map.flyTo([this.selectedPlace.lat, this.selectedPlace.lon], 12)
       }
     },
 
     recenterOnSelectedPlace() {
-      if (!this.map || !this.selectedPlace) return
+      const map = this.map as L.Map | null
+      if (!map || !this.selectedPlace) return
 
-      this.map.flyTo([this.selectedPlace.lat, this.selectedPlace.lon], 12)
+      map.flyTo([this.selectedPlace.lat, this.selectedPlace.lon], 12)
     },
   },
 }

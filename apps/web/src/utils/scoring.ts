@@ -198,23 +198,32 @@ function buildGroupedResults(sortedEvents: EventItem[]): EventItem[] {
       order.push(key)
     }
 
-    groups.get(key)?.push(event)
+    groups.get(key)!.push(event)
   })
 
-  return order.map((key) => {
-    const items = groups.get(key) || []
-    const primary = items[0]
-    const groupedOccurrences = [...items].sort(compareByDate)
+  const groupedResults: EventItem[] = []
 
-    return {
+  order.forEach((key) => {
+    const items = groups.get(key)
+
+    if (!items || items.length === 0) {
+      return
+    }
+
+    const groupedOccurrences = [...items].sort(compareByDate)
+    const primary = groupedOccurrences[0]
+    if(!primary)
+       return;
+    groupedResults.push({
       ...primary,
       isGrouped: groupedOccurrences.length > 1,
       duplicateCount: Math.max(groupedOccurrences.length - 1, 0),
       groupedOccurrences,
-    }
-  }) 
-}
+    })
+  })
 
+  return groupedResults
+}
 export function buildRankedEvents(input: FrontendScoringInput): EventItem[] {
   const ranked = input.events.map((event) => {
     const scoreBreakdown = buildScoreBreakdown(event, input)
