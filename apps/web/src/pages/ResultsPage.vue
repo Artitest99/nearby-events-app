@@ -1,0 +1,225 @@
+<template>
+  <section class="space-y-6">
+    <div>
+      <p class="text-sm font-medium uppercase tracking-wide text-sky-600">Results</p>
+      <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Event results</h1>
+      <p class="mt-3 text-slate-600">
+        Nearby upcoming events ranked for your selected place, dates, and preferences.
+      </p>
+    </div>
+
+    <div
+      v-if="!hasSearchContext"
+      class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+    >
+      <p class="text-lg font-semibold text-slate-900">No active search yet</p>
+      <p class="mt-2 text-slate-600">
+        Go back to the search page and choose a place and dates first.
+      </p>
+
+      <RouterLink
+        to="/"
+        class="mt-4 inline-flex rounded-xl bg-sky-600 px-5 py-3 font-medium text-white transition hover:bg-sky-700"
+      >
+        Back to search
+      </RouterLink>
+    </div>
+
+    <template v-else>
+      <div class="grid gap-6 xl:grid-cols-[320px_1fr]">
+        <div class="space-y-6">
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-lg font-semibold text-slate-900">Search summary</p>
+
+            <div class="mt-4 space-y-3 text-sm text-slate-600">
+              <p>
+                <span class="font-medium text-slate-800">Place:</span>
+                {{ placeText }}
+              </p>
+
+              <p>
+                <span class="font-medium text-slate-800">Date range:</span>
+                {{ dateText }}
+              </p>
+
+              <p>
+                <span class="font-medium text-slate-800">Radius:</span>
+                {{ searchStore.radiusKm }} km
+              </p>
+
+              <p>
+                <span class="font-medium text-slate-800">Categories:</span>
+                {{ categoriesText }}
+              </p>
+
+              <p v-if="searchStore.lastMeta">
+                <span class="font-medium text-slate-800">Provider:</span>
+                {{ searchStore.lastMeta.provider }}
+              </p>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-4">
+              <p class="text-lg font-semibold text-slate-900">Data status</p>
+
+              <button
+                type="button"
+                class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                @click="runSearch"
+              >
+                Refresh
+              </button>
+            </div>
+
+            <div class="mt-4 space-y-2 text-sm text-slate-600">
+              <p>Provider matches fetched: {{ providerCountText }}</p>
+              <p>Ranked events visible: {{ searchStore.results.length }}</p>
+              <p>Current sort: {{ searchStore.sortBy }}</p>
+              <p>Current view: {{ uiStore.resultsViewMode }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <ResultsToolbar
+            :sort-by="searchStore.sortBy"
+            :view-mode="uiStore.resultsViewMode"
+            :selected-categories="searchStore.selectedCategories"
+            :radius-km="searchStore.radiusKm"
+            :results-count="searchStore.results.length"
+            @change-sort="changeSort"
+            @change-view="changeView"
+          />
+
+          <div
+            v-if="searchStore.loading"
+            class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          >
+            <p class="text-slate-700">Loading events...</p>
+          </div>
+
+          <div
+            v-else-if="searchStore.error"
+            class="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm"
+          >
+            <p class="text-lg font-semibold text-red-800">Could not load events</p>
+            <p class="mt-2 text-red-700">{{ searchStore.error }}</p>
+
+            <button
+              type="button"
+              class="mt-4 rounded-xl bg-red-600 px-5 py-3 font-medium text-white transition hover:bg-red-700"
+              @click="runSearch"
+            >
+              Try again
+            </button>
+          </div>
+
+          <div
+            v-else-if="!searchStore.results.length"
+            class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+          >
+            <p class="text-lg font-semibold text-slate-900">No events found</p>
+            <p class="mt-2 text-slate-600">
+              Try a wider radius, broader categories, or a different date range.
+            </p>
+          </div>
+
+          <ResultsMap
+            v-else-if="uiStore.resultsViewMode === 'map'"
+            :events="searchStore.results"
+            :selected-place="searchStore.selectedPlace"
+          />
+
+          <div v-else class="grid gap-5">
+            <EventCard
+              v-for="event in searchStore.results"
+              :key="event.id"
+              :event="event"
+            />
+          </div>
+        </div>
+      </div>
+    </template>
+  </section>
+</template>
+
+<script lang="ts">
+import { RouterLink } from 'vue-router'
+import EventCard from '@/components/event/EventCard.vue'
+import ResultsMap from '@/components/map/ResultsMap.vue'
+import ResultsToolbar from '@/components/results/ResultsToolbar.vue'
+import { useSearchStore } from '@/stores/search'
+import { useUiStore } from '@/stores/ui'
+
+export default {
+  name: 'ResultsPage',
+
+  components: {
+    RouterLink,
+    EventCard,
+    ResultsMap,
+    ResultsToolbar,
+  },
+
+  computed: {
+    searchStore() {
+      return useSearchStore()
+    },
+
+    uiStore() {
+      return useUiStore()
+    },
+
+    hasSearchContext(): boolean {
+      return !!this.searchStore.selectedPlace && !!this.searchStore.startDate
+    },
+
+    placeText(): string {
+      return this.searchStore.selectedPlace
+        ? this.searchStore.selectedPlace.displayName
+        : 'None selected'
+    },
+
+    dateText(): string {
+      if (this.searchStore.endDate) {
+        return `${this.searchStore.startDate} → ${this.searchStore.endDate}`
+      }
+
+      return `${this.searchStore.startDate} onward`
+    },
+
+    categoriesText(): string {
+      return this.searchStore.selectedCategories.length
+        ? this.searchStore.selectedCategories.join(', ')
+        : 'all categories'
+    },
+
+    providerCountText(): string {
+      if (!this.searchStore.lastMeta) return '0'
+      return String(this.searchStore.lastMeta.count)
+    },
+  },
+
+  mounted() {
+    if (this.hasSearchContext && !this.searchStore.results.length && !this.searchStore.loading) {
+      this.runSearch()
+    }
+  },
+
+  methods: {
+    async runSearch() {
+      console.log('[ResultsPage] runSearch() triggered')
+      await this.searchStore.searchEvents()
+    },
+
+    changeSort(value: 'relevance' | 'distance' | 'date') {
+      this.searchStore.setSortBy(value)
+    },
+
+    changeView(value: 'list' | 'map') {
+      this.uiStore.setResultsViewMode(value)
+    },
+  },
+}
+</script>
