@@ -18,6 +18,7 @@ interface SearchState {
   loading: boolean
   error: string | null
   lastMeta: EventSearchResponse['meta'] | null
+  activeTagFilter: string | null
 }
 
 export const useSearchStore = defineStore('search', {
@@ -33,7 +34,35 @@ export const useSearchStore = defineStore('search', {
     loading: false,
     error: null,
     lastMeta: null,
+    activeTagFilter: null,
   }),
+
+ getters: {
+  visibleResults(state): EventItem[] {
+    if (!state.activeTagFilter) {
+      return state.results
+    }
+
+    return state.results.filter(
+      (event) => (event.category || '').trim().toLowerCase() === state.activeTagFilter,
+    )
+  },
+
+  availableTagSummaries(state): Array<{ tag: string; count: number }> {
+    const counts = new Map<string, number>()
+
+    state.results.forEach((event) => {
+      const tag = (event.category || '').trim().toLowerCase()
+      if (!tag) return
+
+      counts.set(tag, (counts.get(tag) || 0) + 1)
+    })
+
+    return Array.from(counts.entries())
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => a.tag.localeCompare(b.tag))
+  },
+},
 
   actions: {
     setPlace(place: Place | null) {
@@ -61,6 +90,20 @@ export const useSearchStore = defineStore('search', {
       this.applyFrontendRanking()
     },
 
+    setActiveTagFilter(tag: string | null) {
+      this.activeTagFilter = tag ? tag.toLowerCase() : null
+    },
+
+    toggleActiveTagFilter(tag: string) {
+      const normalized = tag.toLowerCase()
+      this.activeTagFilter =
+        this.activeTagFilter === normalized ? null : normalized
+    },
+
+    clearActiveTagFilter() {
+      this.activeTagFilter = null
+    },
+
     setResults(results: EventItem[]) {
       this.rawResults = results
       this.applyFrontendRanking()
@@ -79,6 +122,7 @@ export const useSearchStore = defineStore('search', {
       this.results = []
       this.error = null
       this.lastMeta = null
+      this.activeTagFilter = null
     },
 
     applyFrontendRanking() {
@@ -95,6 +139,15 @@ export const useSearchStore = defineStore('search', {
         sortBy: this.sortBy,
         hideDuplicateEvents: preferencesStore.hideDuplicateEvents,
       })
+
+      if (
+        this.activeTagFilter &&
+        !this.results.some(
+          (event) => (event.category || '').toLowerCase() === this.activeTagFilter,
+        )
+      ) {
+        this.activeTagFilter = null
+      }
 
       console.log('[searchStore] Frontend ranking applied')
       console.log('[searchStore] Ranked/grouped results count:', this.results.length)

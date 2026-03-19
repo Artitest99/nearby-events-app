@@ -1,43 +1,25 @@
 <template>
-  <section class="space-y-6">
-    <div>
-      <p class="text-sm font-medium uppercase tracking-wide text-sky-600">Discover</p>
-      <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-        Find nearby upcoming events
+  <section class="space-y-5">
+    <div class="space-y-2">
+      <p class="text-sm font-medium uppercase tracking-wide text-sky-600">Nearby Events</p>
+      <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+        Find the best events around you
       </h1>
-      <p class="mt-3 max-w-2xl text-slate-600">
-        Choose a place, set your dates, and discover concerts, sports, performances,
-        exhibitions, tours, and more.
-      </p>
-    </div>
-    <div class="grid gap-6 xl:grid-cols-[420px_1fr]">
-      <div class="space-y-6">
-        <SearchPanel />
-        <MapPicker />
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p class="text-lg font-semibold text-slate-900">Saved local defaults</p>
-
-          <div class="mt-4 space-y-3 text-sm text-slate-600">
-            <p>
-              <span class="font-medium text-slate-800">Default radius:</span>
-              {{ defaultRadiusKm }} km
-            </p>
-
-            <p>
-              <span class="font-medium text-slate-800">Preferred categories:</span>
-              {{ preferredCategoriesText }}
-            </p>
-          </div>
-        </div>
+      <div class="flex flex-wrap gap-2 text-xs sm:text-sm">
+        <span class="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
+          Radius: {{ defaultRadiusKm }} km
+        </span>
+        <span class="rounded-full bg-sky-50 px-3 py-1 font-medium text-sky-700">
+          {{ preferredCategoriesText }}
+        </span>
       </div>
-
-    
     </div>
+
+    <SearchPanel />
   </section>
 </template>
 
 <script lang="ts">
-import MapPicker from '@/components/map/MapPicker.vue'
 import SearchPanel from '@/components/search/SearchPanel.vue'
 import { usePreferencesStore } from '@/stores/preferences'
 
@@ -46,7 +28,6 @@ export default {
 
   components: {
     SearchPanel,
-    MapPicker,
   },
 
   computed: {
@@ -60,8 +41,8 @@ export default {
 
     preferredCategoriesText(): string {
       return this.preferencesStore.preferredCategories.length
-        ? this.preferencesStore.preferredCategories.join(', ')
-        : 'none selected'
+        ? this.preferencesStore.preferredCategories.join(' • ')
+        : 'No preferred categories'
     },
   },
 }

@@ -20,3 +20,43 @@ body {
     "Segoe UI",
     sans-serif;
 }
+
+.expand-fade-enter-active,
+.expand-fade-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    max-height 220ms ease;
+  overflow: hidden;
+}
+
+.expand-fade-enter-from,
+.expand-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+  max-height: 0;
+}
+
+.expand-fade-enter-to,
+.expand-fade-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 1000px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expand-fade-enter-active,
+  .expand-fade-leave-active {
+    transition: none;
+  }
+} 
+
+:root {
+  --app-header-offset: 92px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --app-header-offset: 76px;
+  }
+}

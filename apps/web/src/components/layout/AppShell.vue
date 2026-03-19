@@ -1,8 +1,8 @@
 <template>
   <div class="min-h-screen">
     <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
-      <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-        <RouterLink to="/" class="text-base font-semibold tracking-tight text-slate-900 sm:text-lg">
+      <div class="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-0 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <RouterLink to="/" class="text-base font-semibold tracking-tight text-slate-900 sm:text-lg mt-2">
           Nearby Events
         </RouterLink>
 

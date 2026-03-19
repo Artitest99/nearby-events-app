@@ -1,34 +1,37 @@
 <template>
-  <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-    <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p class="text-lg font-semibold text-slate-900">Pick a place on the map</p>
-        <p class="text-sm text-slate-600">
-          Tap or click anywhere to choose a search center.
+  <div :class="embedded ? 'rounded-2xl border border-slate-200 bg-white/70 p-3' : 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'">
+    <div class="mb-3 flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <p class="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
+          <MapPinned class="h-4 w-4 text-sky-600" />
+          Map
+        </p>
+        <p class="mt-1 text-xs text-slate-500">
+          Tap to set the search center.
         </p>
       </div>
 
       <button
         type="button"
-        class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition duration-200 hover:bg-slate-50"
         @click="recenterOnSelectedPlace"
       >
+        <Crosshair class="h-4 w-4 text-sky-600" />
         Recenter
       </button>
     </div>
 
     <div
       ref="mapRoot"
-      class="h-[360px] overflow-hidden rounded-2xl border border-slate-200 sm:h-[420px]"
+      class="h-[300px] overflow-hidden rounded-2xl border border-slate-200 sm:h-[360px]"
     />
 
-    <div class="mt-3 flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-      <p>
-        Selected place:
+    <div class="mt-3 flex flex-col gap-2 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+      <p class="truncate">
         <span class="font-medium text-slate-800">{{ selectedPlaceLabel }}</span>
       </p>
 
-      <p v-if="loadingPlace" class="text-sky-700">Resolving place…</p>
+      <p v-if="loadingPlace" class="text-sky-700">Resolving…</p>
       <p v-else-if="errorText" class="text-red-600">{{ errorText }}</p>
     </div>
   </div>
@@ -36,11 +39,24 @@
 
 <script lang="ts">
 import * as L from 'leaflet'
+import { Crosshair, MapPinned } from 'lucide-vue-next'
 import { reversePlace } from '@/services/api/places'
 import { useSearchStore } from '@/stores/search'
 
 export default {
   name: 'MapPicker',
+
+  components: {
+    Crosshair,
+    MapPinned,
+  },
+
+  props: {
+    embedded: {
+      type: Boolean,
+      default: false,
+    },
+  },
 
   data() {
     return {
@@ -64,7 +80,7 @@ export default {
     selectedPlaceLabel(): string {
       return this.selectedPlace
         ? this.selectedPlace.displayName
-        : 'None selected'
+        : 'No place selected'
     },
   },
 
@@ -126,7 +142,6 @@ export default {
         window.setTimeout(() => {
           const currentMap = this.map as L.Map | null
           if (!currentMap) return
-
           currentMap.invalidateSize()
         }, 0)
       })
