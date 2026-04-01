@@ -1,6 +1,9 @@
 <template>
-    <section class="space-y-6">
-        <div>
+    <section :class="uiStore.resultsViewMode === 'swipe'
+            ? 'space-y-1 h-[calc(100svh-var(--app-header-offset)-4px)] overflow-hidden pb-1'
+            : 'space-y-6'
+        ">
+        <div v-if="uiStore.resultsViewMode !== 'swipe'">
             <p class="text-sm font-medium uppercase tracking-wide text-sky-600">Results</p>
             <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-900">Event results</h1>
             <p class="mt-3 text-slate-600">
@@ -22,7 +25,7 @@
 
         <template v-else>
             <div class="grid gap-6 xl:grid-cols-[320px_1fr]">
-                <div class="space-y-4">
+                <div v-if="uiStore.resultsViewMode !== 'swipe'" class="space-y-4">
                     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
                         <button type="button" class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
                             @click="showSearchSummary = !showSearchSummary">
@@ -107,7 +110,10 @@
                     </div>
                 </div>
 
-                <div class="space-y-6">
+                <div class="space-y-3" :class="uiStore.resultsViewMode === 'swipe'
+                    ? 'mx-auto flex h-full w-full max-w-4xl flex-col overflow-hidden'
+                    : ''
+                    ">
                     <ResultsToolbar :sort-by="searchStore.sortBy" :view-mode="uiStore.resultsViewMode"
                         :results-count="searchStore.visibleResults.length"
                         :tag-summaries="searchStore.availableTagSummaries"
@@ -141,6 +147,9 @@
                     <ResultsMap v-else-if="uiStore.resultsViewMode === 'map'" :events="searchStore.visibleResults"
                         :selected-place="searchStore.selectedPlace" />
 
+                    <SwipeEventDeck v-else-if="uiStore.resultsViewMode === 'swipe'"
+                        :events="searchStore.visibleResults" />
+
                     <div v-else class="grid gap-5">
                         <EventCard v-for="event in searchStore.visibleResults" :key="event.id" :event="event" />
                     </div>
@@ -158,7 +167,7 @@ import ResultsMap from '@/components/map/ResultsMap.vue'
 import ResultsToolbar from '@/components/results/ResultsToolbar.vue'
 import { useSearchStore } from '@/stores/search'
 import { useUiStore } from '@/stores/ui'
-
+import SwipeEventDeck from '@/components/results/SwipeEventDeck.vue'
 export default {
     name: 'ResultsPage',
 
@@ -168,6 +177,7 @@ export default {
         EventCard,
         ResultsMap,
         ResultsToolbar,
+        SwipeEventDeck
     },
 
     data() {
@@ -212,6 +222,10 @@ export default {
     },
 
     mounted() {
+        if (window.innerWidth < 768 && this.uiStore.resultsViewMode === 'list') {
+            this.uiStore.setResultsViewMode('swipe')
+        }
+
         if (this.hasSearchContext && !this.searchStore.results.length && !this.searchStore.loading) {
             this.runSearch()
         }

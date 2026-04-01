@@ -21,7 +21,13 @@ body {
     "Segoe UI",
     sans-serif;
 }
-
+.line-clamp-3-swipe {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
 .expand-fade-enter-active,
 .expand-fade-leave-active {
   transition:
@@ -56,8 +62,8 @@ body {
   --app-header-offset: 92px;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 768px) {
   :root {
-    --app-header-offset: 76px;
+    --app-header-offset: 0px;
   }
 }

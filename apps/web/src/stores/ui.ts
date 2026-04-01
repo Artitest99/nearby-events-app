@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 interface UiState {
   mobileFiltersOpen: boolean
-  resultsViewMode: 'list' | 'map'
+  resultsViewMode: 'list' | 'map' | 'swipe'
   selectedEventId: string | null
 }
 
@@ -22,7 +22,7 @@ export const useUiStore = defineStore('ui', {
       this.mobileFiltersOpen = !this.mobileFiltersOpen
     },
 
-    setResultsViewMode(mode: 'list' | 'map') {
+    setResultsViewMode(mode: 'list' | 'map' | 'swipe') {
       this.resultsViewMode = mode
     },
 
