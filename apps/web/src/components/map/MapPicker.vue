@@ -1,5 +1,6 @@
 <template>
-  <div :class="embedded ? 'rounded-2xl border border-slate-200 bg-white/70 p-3' : 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'">
+  <div
+    :class="embedded ? 'rounded-2xl border border-slate-200 bg-white/70 p-3' : 'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm'">
     <div class="mb-3 flex items-center justify-between gap-3">
       <div class="min-w-0">
         <p class="inline-flex items-center gap-2 text-sm font-semibold text-slate-900">
@@ -11,28 +12,26 @@
         </p>
       </div>
 
-      <button
-        type="button"
+      <button type="button"
         class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition duration-200 hover:bg-slate-50"
-        @click="recenterOnSelectedPlace"
-      >
+        @click="recenterOnSelectedPlace">
         <Crosshair class="h-4 w-4 text-sky-600" />
         Recenter
       </button>
     </div>
 
-    <div
-      ref="mapRoot"
-      class="h-[300px] overflow-hidden rounded-2xl border border-slate-200 sm:h-[360px]"
-    />
+    <div ref="mapRoot" class="h-[300px] overflow-hidden rounded-2xl border border-slate-200 sm:h-[360px]" />
 
-    <div class="mt-3 flex flex-col gap-2 text-xs text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-      <p class="truncate">
-        <span class="font-medium text-slate-800">{{ selectedPlaceLabel }}</span>
-      </p>
+    <div class="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-[260px_auto] sm:items-start sm:justify-between">
+      <div class="min-w-0 w-full sm:w-[260px] sm:max-w-[260px]">
+        <p class="break-words whitespace-normal leading-5 text-slate-800" :title="selectedPlaceLabel">
+          <span class="font-medium">Selected place:</span>
+          {{ selectedPlaceLabel }}
+        </p>
+      </div>
 
-      <p v-if="loadingPlace" class="text-sky-700">Resolving…</p>
-      <p v-else-if="errorText" class="text-red-600">{{ errorText }}</p>
+      <p v-if="loadingPlace" class="text-sky-700 sm:text-right">Resolving…</p>
+      <p v-else-if="errorText" class="text-red-600 sm:text-right">{{ errorText }}</p>
     </div>
   </div>
 </template>

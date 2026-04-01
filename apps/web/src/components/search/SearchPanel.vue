@@ -1,12 +1,12 @@
 <template>
   <form
     class="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_20px_60px_-30px_rgba(2,6,23,0.25)]"
-    @submit.prevent="submitSearch"
-  >
+    @submit.prevent="submitSearch">
     <div class="border-b border-slate-100 bg-gradient-to-br from-sky-50 via-white to-indigo-50 px-5 py-5 sm:px-6">
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0">
-          <div class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
+          <div
+            class="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-sky-100">
             <Sparkles class="h-3.5 w-3.5" />
             Discover nearby events
           </div>
@@ -20,9 +20,12 @@
           </p>
         </div>
 
-        <div class="hidden shrink-0 md:flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200">
-          <MapPinned class="h-4 w-4 text-sky-600" />
-          {{ selectedPlaceLabel }}
+        <div
+          class="hidden min-w-0 max-w-[260px] shrink-0 items-center gap-2 rounded-full bg-white px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200 md:flex">
+          <MapPinned class="h-4 w-4 shrink-0 text-sky-600" />
+          <span class="truncate" :title="selectedPlaceLabel">
+            {{ selectedPlaceLabel }}
+          </span>
         </div>
       </div>
     </div>
@@ -36,40 +39,24 @@
           </label>
 
           <div class="relative">
-            <input
-              id="location"
-              v-model.trim="locationQuery"
-              type="text"
-              placeholder="Search a city"
-              class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-              @input="onLocationInput"
-              @focus="showSuggestions = true"
-              @blur="closeSuggestions"
-            />
+            <input id="location" v-model.trim="locationQuery" type="text" placeholder="Search a city" maxlength="120"
+              class="w-full min-w-0 max-w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-900 outline-none transition duration-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 sm:text-sm"
+              @input="onLocationInput" @focus="showSuggestions = true" @blur="closeSuggestions" />
 
-            <div
-              v-if="showSuggestions && filteredSuggestions.length"
-              class="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl"
-            >
-              <button
-                v-for="place in filteredSuggestions"
-                :key="place.id"
-                type="button"
+            <div v-if="showSuggestions && filteredSuggestions.length"
+              class="absolute z-20 mt-2 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+              <button v-for="place in filteredSuggestions" :key="place.id" type="button"
                 class="block w-full border-b border-slate-100 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50 last:border-b-0"
-                @mousedown.prevent="selectSuggestion(place)"
-              >
+                @mousedown.prevent="selectSuggestion(place)">
                 {{ place.displayName }}
               </button>
             </div>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
+            <button type="button"
               class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition duration-200 hover:bg-slate-50 hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
-              :disabled="isLocating"
-              @click="useCurrentLocation"
-            >
+              :disabled="isLocating" @click="useCurrentLocation">
               <LocateFixed class="h-4 w-4 text-sky-600" />
               {{ isLocating ? 'Locating…' : 'Use my location' }}
             </button>
@@ -86,12 +73,8 @@
               <CalendarDays class="h-4 w-4 text-sky-600" />
               Start
             </label>
-            <input
-              id="startDate"
-              v-model="startDate"
-              type="date"
-              class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-            />
+            <input id="startDate" v-model="startDate" type="date"
+              class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100" />
           </div>
 
           <div class="space-y-2">
@@ -99,12 +82,8 @@
               <CalendarRange class="h-4 w-4 text-sky-600" />
               End
             </label>
-            <input
-              id="endDate"
-              v-model="endDate"
-              type="date"
-              class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
-            />
+            <input id="endDate" v-model="endDate" type="date"
+              class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition duration-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100" />
           </div>
         </div>
 
@@ -119,14 +98,7 @@
             </span>
           </div>
 
-          <input
-            id="radius"
-            v-model.number="radiusKm"
-            type="range"
-            min="1"
-            max="100"
-            class="w-full accent-sky-600"
-          />
+          <input id="radius" v-model.number="radiusKm" type="range" min="1" max="100" class="w-full accent-sky-600" />
         </div>
 
         <div class="space-y-2">
@@ -136,44 +108,31 @@
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <button
-              v-for="category in categories"
-              :key="category"
-              type="button"
+            <button v-for="category in categories" :key="category" type="button"
               class="rounded-full border px-3.5 py-2 text-sm font-medium transition duration-200 hover:-translate-y-[1px]"
-              :class="
-                selectedCategories.includes(category)
-                  ? 'border-sky-600 bg-sky-600 text-white shadow-sm'
-                  : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
-              "
-              @click="toggleCategory(category)"
-            >
+              :class="selectedCategories.includes(category)
+                ? 'border-sky-600 bg-sky-600 text-white shadow-sm'
+                : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                " @click="toggleCategory(category)">
               {{ category }}
             </button>
           </div>
         </div>
 
-        <div
-          v-if="formError"
-          class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-        >
+        <div v-if="formError" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {{ formError }}
         </div>
 
         <div class="grid gap-3 sm:flex sm:flex-wrap">
-          <button
-            type="submit"
-            class="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-600 px-5 py-3 font-medium text-white transition duration-200 hover:bg-sky-700 hover:-translate-y-[1px]"
-          >
+          <button type="submit"
+            class="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-600 px-5 py-3 font-medium text-white transition duration-200 hover:bg-sky-700 hover:-translate-y-[1px]">
             <Search class="h-4 w-4" />
             Search events
           </button>
 
-          <button
-            type="button"
+          <button type="button"
             class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-5 py-3 font-medium text-slate-700 transition duration-200 hover:bg-slate-50"
-            @click="resetForm"
-          >
+            @click="resetForm">
             <RotateCcw class="h-4 w-4" />
             Reset
           </button>
@@ -267,7 +226,9 @@ export default {
     selectedPlaceValue: {
       deep: true,
       handler(newPlace) {
-        this.locationQuery = newPlace ? newPlace.displayName : ''
+        this.locationQuery = newPlace
+          ? this.truncateAddress(newPlace.displayName)
+          : ''
       },
     },
   },
@@ -337,10 +298,10 @@ export default {
     },
 
     selectSuggestion(place: Place) {
-      this.searchStore.setPlace(place)
-      this.locationQuery = place.displayName
-      this.showSuggestions = false
-      this.formError = ''
+      this.searchStore.setPlace(place);
+      this.locationQuery = this.truncateAddress(place.displayName);
+      this.showSuggestions = false;
+      this.formError = '';
     },
 
     toggleCategory(category: string) {
@@ -370,7 +331,7 @@ export default {
             const place = response.result
 
             this.searchStore.setPlace(place)
-            this.locationQuery = place.displayName
+            this.locationQuery = this.truncateAddress(place.displayName)
           } catch (error) {
             this.formError =
               error instanceof Error
@@ -426,6 +387,15 @@ export default {
       this.searchStore.clearResults()
 
       this.$router.push('/results')
+    },
+    truncateAddress(value: string, maxLength = 40): string {
+      if (!value) return ''
+
+      if (value.length <= maxLength) {
+        return value
+      }
+
+      return `${value.slice(0, maxLength - 1)}…`
     },
   },
 }
